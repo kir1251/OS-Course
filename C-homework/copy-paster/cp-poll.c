@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned int BUFFER_MAX_SIZE = 128;
+const unsigned int BUFFER_MAX_SIZE = 128;
 
 int main(int argc, char**argv) 
 {
@@ -29,7 +29,7 @@ int main(int argc, char**argv)
       int k = poll(fds, argc, 1000);
       if (k > 0) {
          for (i = 0; i < n; i ++) {
-            if (fds[i * 2].revents == POLLIN && bu_size[i] < BUFFER_MAX_SIZE) {
+            if (fds[i * 2].revents & POLLIN && bu_size[i] < BUFFER_MAX_SIZE) {
                int d = BUFFER_MAX_SIZE - bu_size[i];
                if (d != 0) {
                   int nr = read(fds[i * 2].fd, buffer[i] + bu_size[i], d);
@@ -40,7 +40,7 @@ int main(int argc, char**argv)
                   }
                }
             }
-            if (fds[i * 2 + 1].revents == POLLOUT && bu_size[i] > 0) {
+            if (fds[i * 2 + 1].revents & POLLOUT && bu_size[i] > 0) {
                int nw = write(fds[i * 2 + 1].fd, buffer[i], bu_size[i]);
                if (nw > 0) {
                    int rest = BUFFER_MAX_SIZE - nw;
@@ -52,4 +52,9 @@ int main(int argc, char**argv)
       }
    }
    free(fds);
+   for (i = 0; i < argc; i++) {
+       free(buffer[i]);
+   }
+   free(buffer);
+   free(bu_size);
 }
